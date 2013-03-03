@@ -74,7 +74,7 @@ test_strategy(N, St1, St2) :-
   max(MovesList, Longest_game),
   min(MovesList, Shortest_game),
   sum_list(MovesList, SumMoves),
-  list_length(MovesList, LenMovesList),
+  list_length(MoveList, LenMovesList),
   Avg_move is SumMoves / LenMovesList,
   Avg_time is (EndingTime-StartingTime)*1000/N,
   write('Num_draws: '), write(Num_draws), write('\n'),
