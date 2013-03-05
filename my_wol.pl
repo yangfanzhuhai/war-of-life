@@ -137,64 +137,48 @@ separate_board('b',[Blue_pieces, Red_pieces], Blue_pieces, Red_pieces).
 separate_board('r',[Blue_pieces, Red_pieces], Red_pieces, Blue_pieces).
   
 compose_board('b', Blue_pieces, Red_pieces, [Blue_pieces, Red_pieces]).
-compose_board('r', Blue_pieces, Red_pieces, [Blue_pieces, Red_pieces]).
+compose_board('r', Red_pieces, Blue_pieces, [Blue_pieces, Red_pieces]).
 
-get_score(bloodlust, 'b', [_, Red], length(Red)).
-get_score(bloodlust, 'r', [Blue, _], length(Blue)).
+get_score(bloodlust, _, Op_Alive, Score) :- length(Op_Alive, L), Score is -L.
+get_score(self_preservation, My_Alive, _, Score) :- length(My_Alive, Score).
+get_score(land_grab, My_Alive, Op_Alive, Score) :-
+  length(My_Alive, L1),
+  length(Op_Alive, L2),
+  Score is L1 - L2.
 
-get_best_move([], _, _, _, _, _, _, _).  
+get_best_move([], _, _, _, _, _, _, -1000).
   
-/* When the Curr_Move is the best move so far. */
 get_best_move([Curr_Move | List_Moves], PlayerColour, My_Alive, Op_Alive, 
-              Strategy, Curr_Move, NewBoardState, HighestScore) :-
+              Strategy, NewBestMove, NewBestBoardState, NewHighestScore) :-
   alter_board(Curr_Move, My_Alive, New_My_Alive),
   compose_board(PlayerColour, New_My_Alive, Op_Alive, NewBoardState),
   next_generation(NewBoardState, NewGenerationBoard),
-  get_score(Strategy, PlayerColour, NewGenerationBoard, HighestScore), 
+  separate_board(PlayerColour, NewGenerationBoard, New_Gen_My_Alive, New_Gen_Op_Alive),
+  get_score(Strategy, New_Gen_My_Alive, New_Gen_Op_Alive, NewScore),
   get_best_move(List_Moves, PlayerColour, My_Alive, Op_Alive, Strategy, 
-                _, _, Score),
-  HighestScore>=Score.
-
-/* When the Curr_Move is not the best move so far. */
-get_best_move([Curr_Move | List_Moves],PlayerColour, My_Alive, Op_Alive, 
-              Strategy, Move, NewBoardState, HighestScore) :-
-  alter_board(Curr_Move, My_Alive, New_My_Alive),
-  compose_board(PlayerColour, New_My_Alive, Op_Alive, NewState),
-  next_generation(NewState, NewGenerationBoard),
-  get_score(Strategy, PlayerColour, NewGenerationBoard, Score), 
-  get_best_move(List_Moves, PlayerColour, My_Alive, Op_Alive, Strategy, 
-                Move, NewBoardState, HighestScore),
-  HighestScore>Score. 
+                OldBestMove, OldBestBoardState, OldHighestScore),
+  (NewScore>OldHighestScore
+  ->
+    NewHighestScore=NewScore, NewBestBoardState=NewBoardState,
+    NewBestMove=Curr_Move
+  ;
+    NewHighestScore=OldHighestScore, NewBestBoardState=OldBestBoardState,
+    NewBestMove=OldBestMove
+  ).
   
 implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, Strategy) :-
   separate_board(PlayerColour, CurrentBoardState, My_Alive, Op_Alive),  
   possible_moves(My_Alive, Op_Alive, PossMoves),
   get_best_move(PossMoves, PlayerColour, My_Alive, Op_Alive, Strategy, Move, NewBoardState, _).
-  
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%% BLOODLUST MOVE STRATEGY
 
 bloodlust(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
   implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, bloodlust).
 
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%% SELF PRESERVATION MOVE STRATEGY
-
 self_preservation(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
-  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, self_preservation).
-
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%% LAND GRAB MOVE STRATEGY
+implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, self_preservation).
 
 land_grab(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
-  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, land_grab).
-
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%% MINIMAX MOVE STRATEGY
+implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, land_grab).
 
 minimax(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
-  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, minimax).
+implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, minimax).
