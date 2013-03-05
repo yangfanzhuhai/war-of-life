@@ -126,6 +126,7 @@ test_strategy(N, St1, St2) :-
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% SUPPORT FOR OTHER STRATEGIES
 
+/* Generate all the possible moves for a player. */
 possible_moves(Alive, OtherPlayerAlive, PossMoves) :-
   findall([A,B,MA,MB],(member([A,B], Alive),
                       neighbour_position(A,B,[MA,MB]),
@@ -133,12 +134,15 @@ possible_moves(Alive, OtherPlayerAlive, PossMoves) :-
 	              \+member([MA,MB],OtherPlayerAlive)),
 	        PossMoves). 
 
+/* Divide the board into the player's pieces and the opponent's pieces. */
 separate_board('b',[Blue_pieces, Red_pieces], Blue_pieces, Red_pieces).
 separate_board('r',[Blue_pieces, Red_pieces], Red_pieces, Blue_pieces).
-  
+
+/* Combine the player's pieces and the opponent's pieces back into a board. */
 compose_board('b', Blue_pieces, Red_pieces, [Blue_pieces, Red_pieces]).
 compose_board('r', Red_pieces, Blue_pieces, [Blue_pieces, Red_pieces]).
 
+/* Calucation the evaluation score for each move using a strategy. */
 get_score(bloodlust, _, Op_Alive, Score) :- length(Op_Alive, L), Score is -L.
 get_score(self_preservation, My_Alive, _, Score) :- length(My_Alive, Score).
 get_score(land_grab, My_Alive, Op_Alive, Score) :-
@@ -146,6 +150,7 @@ get_score(land_grab, My_Alive, Op_Alive, Score) :-
   length(Op_Alive, L2),
   Score is L1 - L2.
 
+/* Find the best move in all the possible moves by comparing the score. */
 get_best_move([], _, _, _, _, _, _, -1000).
   
 get_best_move([Curr_Move | List_Moves], PlayerColour, My_Alive, Op_Alive, 
@@ -165,20 +170,22 @@ get_best_move([Curr_Move | List_Moves], PlayerColour, My_Alive, Op_Alive,
     NewHighestScore=OldHighestScore, NewBestBoardState=OldBestBoardState,
     NewBestMove=OldBestMove
   ).
-  
+
+/* A wrapper function for strategies. */
 implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, Strategy) :-
   separate_board(PlayerColour, CurrentBoardState, My_Alive, Op_Alive),  
   possible_moves(My_Alive, Op_Alive, PossMoves),
   get_best_move(PossMoves, PlayerColour, My_Alive, Op_Alive, Strategy, Move, NewBoardState, _).
 
+/* Entry point for different strategies. */
 bloodlust(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
   implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, bloodlust).
 
 self_preservation(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
-implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, self_preservation).
+  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, self_preservation).
 
 land_grab(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
-implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, land_grab).
+  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, land_grab).
 
 minimax(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
-implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, minimax).
+  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, minimax).
