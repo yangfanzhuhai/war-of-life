@@ -3,6 +3,10 @@
  */
 :- use_module(library(system)).
 
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% SUPPORT FOR TEST_STRATEGY
+
 /* Just for flexibility purposes: */
 game_type(quiet).
 
@@ -75,6 +79,10 @@ test_strategy_scores(N, St1, St2, [CurrMoves|Moves], [CurrWinner|Wins]) :-
   N2 is N-1,
   test_strategy_scores(N2, St1, St2, Moves, Wins).
 
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% TEST_STRATEGY
+
 test_strategy(N, St1, St2) :-
   write('Comparing: '),
   write(St1),
@@ -113,3 +121,54 @@ test_strategy(N, St1, St2) :-
   write('Shortest_game: '), write(Shortest_game), write('\n'),
   write('Avg_move: '), write(Avg_move), write('\n'),
   write('Avg_time: '), write(Avg_time), write('\n').
+  
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% SUPPORT FOR OTHER STRATEGIES
+
+possible_moves(Alive, OtherPlayerAlive, PossMoves) :-
+  findall([A,B,MA,MB],(member([A,B], Alive),
+                      neighbour_position(A,B,[MA,MB]),
+	              \+member([MA,MB],Alive),
+	              \+member([MA,MB],OtherPlayerAlive)),
+	        PossMoves). 
+
+separate_board('b',[Blue_pieces, Red_pieces], Blue_pieces, Red_pieces).
+separate_board('r',[Blue_pieces, Red_pieces], Red_pieces, Blue_pieces).
+  
+compose_board('b', Blue_pieces, Red_pieces, [Blue_pieces, Red_pieces]).
+compose_board('r', Blue_pieces, Red_pieces, [Blue_pieces, Red_pieces]).
+  
+  
+  
+  
+  
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% BLOODLUST MOVE STRATEGY
+
+/*
+move_piece('b', random, [AliveBlues, AliveReds], [NewAliveBlues, AliveReds], Move) :-
+ random_move(AliveBlues, AliveReds, Move),
+ alter_board(Move, AliveBlues, NewAliveBlues).
+
+move_piece('r', random, [AliveBlues, AliveReds], [AliveBlues, NewAliveReds], Move) :-
+ random_move(AliveReds, AliveBlues, Move),
+ alter_board(Move, AliveReds, NewAliveReds).
+ */
+
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% SELF PRESERVATION MOVE STRATEGY
+
+
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% LAND GRAB MOVE STRATEGY
+
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% MINIMAX MOVE STRATEGY
+
+
+              
