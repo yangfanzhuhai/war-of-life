@@ -139,27 +139,27 @@ separate_board('r',[Blue_pieces, Red_pieces], Red_pieces, Blue_pieces).
 compose_board('b', Blue_pieces, Red_pieces, [Blue_pieces, Red_pieces]).
 compose_board('r', Blue_pieces, Red_pieces, [Blue_pieces, Red_pieces]).
 
-get_score(bloodlust, 'b', [Blue, Red], length(Red)).
-get_score(bloodlust, 'r', [Blue, Red], length(Blue)).
+get_score(bloodlust, 'b', [_, Red], length(Red)).
+get_score(bloodlust, 'r', [Blue, _], length(Blue)).
 
-get_best_move([], _, _, _, _, Move, NewBoardState, Score).  
+get_best_move([], _, _, _, _, _, _, _).  
   
 /* When the Curr_Move is the best move so far. */
 get_best_move([Curr_Move | List_Moves], PlayerColour, My_Alive, Op_Alive, 
               Strategy, Curr_Move, NewBoardState, HighestScore) :-
   alter_board(Curr_Move, My_Alive, New_My_Alive),
-  compose_board(PlayerColour, NewMyAlives, Op_Alive, NewBoardState),
+  compose_board(PlayerColour, New_My_Alive, Op_Alive, NewBoardState),
   next_generation(NewBoardState, NewGenerationBoard),
   get_score(Strategy, PlayerColour, NewGenerationBoard, HighestScore), 
   get_best_move(List_Moves, PlayerColour, My_Alive, Op_Alive, Strategy, 
-                Move, NewState, Score),
+                _, _, Score),
   HighestScore>=Score.
 
 /* When the Curr_Move is not the best move so far. */
 get_best_move([Curr_Move | List_Moves],PlayerColour, My_Alive, Op_Alive, 
               Strategy, Move, NewBoardState, HighestScore) :-
   alter_board(Curr_Move, My_Alive, New_My_Alive),
-  compose_board(PlayerColour, NewMyAlives, Op_Alive, NewBoardState),
+  compose_board(PlayerColour, New_My_Alive, Op_Alive, NewState),
   next_generation(NewState, NewGenerationBoard),
   get_score(Strategy, PlayerColour, NewGenerationBoard, Score), 
   get_best_move(List_Moves, PlayerColour, My_Alive, Op_Alive, Strategy, 
@@ -168,8 +168,8 @@ get_best_move([Curr_Move | List_Moves],PlayerColour, My_Alive, Op_Alive,
   
 implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, Strategy) :-
   separate_board(PlayerColour, CurrentBoardState, My_Alive, Op_Alive),  
-  possible_moves(My_Alive, Op_Alive, PosMoves),
-  get_best_move(PossMoves, PlayerColour, My_Alive, Op_Alive, Strategy, Move, NewBoardState, HighestScore).
+  possible_moves(My_Alive, Op_Alive, PossMoves),
+  get_best_move(PossMoves, PlayerColour, My_Alive, Op_Alive, Strategy, Move, NewBoardState, _).
   
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
