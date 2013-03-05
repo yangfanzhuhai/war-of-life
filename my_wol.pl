@@ -34,7 +34,7 @@ list_elem_count([], _, 0).
 list_elem_count([El|T], El, N) :-
   list_elem_count(T, El, N2),
   N is N2+1.
-
+  
 list_elem_count([X|T], El, N) :-
   \+ X == El,
   list_elem_count(T, El, N).
@@ -86,18 +86,27 @@ test_strategy(N, St1, St2) :-
   now(EndingTime),
   list_elem_count(WinList, 'draw', Num_normal_draws),
   list_elem_count(WinList, 'exhaust', Num_exhaust_draws),
-  Num_draws is Num_normal_draws + Num_exhaust_draws,
+  list_elem_count(WinList, 'stalemate', Num_stalemate_draws),
   list_elem_count(WinList, 'b', Num_wins_b),
   list_elem_count(WinList, 'r', Num_wins_r),
   min(MovesList, Shortest_game),
   sum_list(MovesList, SumMoves),
   list_length(MovesList, LenMovesList),
+  Total is (Num_normal_draws + Num_exhaust_draws + 
+            Num_stalemate_draws + Num_wins_b + Num_wins_r),
+  Num_draws is (Num_normal_draws + Num_exhaust_draws + 
+                Num_stalemate_draws),
   delete_some(MovesList, 250, Num_exhaust_draws, 
               Non_exhaustive_MovesList),
-  max(Non_exhaustive_MovesList, Longest_game),
+  max(Non_exhaustive_MovesList, Longest_game),            
   Avg_move is SumMoves / LenMovesList,
   Avg_time is (EndingTime-StartingTime)*1000/N,
+  write('List Length: '), write(LenMovesList), write('\n'),
+  write('Total: '), write(Total), write('\n'),
   write('Num_draws: '), write(Num_draws), write('\n'),
+  write('Num_normal_draws: '), write(Num_normal_draws), write('\n'),
+  write('Num_exhaust_draws: '), write(Num_exhaust_draws), write('\n'),  
+  write('Num_stalemate_draws: '), write(Num_stalemate_draws), write('\n'),
   write('Num_wins_blue: '), write(Num_wins_b), write('\n'),
   write('Num_wins_red: '), write(Num_wins_r), write('\n'),
   write('Longest_game: '), write(Longest_game), write('\n'),
