@@ -4,7 +4,7 @@
 :- use_module(library(system)).
 
 /* Just for flexibility purposes: */
-game_type(verbose).
+game_type(quiet).
 
 
 /* Min and max functions for lists: */
@@ -55,20 +55,25 @@ list_length([_|T], Len) :-
 test_strategy_scores(0, _, _, [], []).
 
 /* Recursion: */
-test_strategy_scores(N, St1, St2, [CurrMoves|Moves], [CurrWinner|Wins]) :-
+test_strategy_scores(N, St1, St2, [CurrMoves|Moves],[CurrWinner|Wins]) :-
   N>0,
   game_type(Type),
   play(Type, St1, St2, CurrMoves, CurrWinner),
   N2 is N-1,
   test_strategy_scores(N2, St1, St2, Moves, Wins).
 
-
 test_strategy(N, St1, St2) :-
-  write('Comparing: '), write(St1), write('(Payer 1) with '), write(St2), write(' (Player 2)\n'),
+  write('Comparing: '),
+  write(St1),
+  write('(Payer 1) with '),
+  write(St2),
+  write(' (Player 2)\n'),
   now(StartingTime),
   test_strategy_scores(N, St1, St2, MovesList, WinList),
   now(EndingTime),
-  list_elem_count(WinList, 'draw', Num_draws),
+  list_elem_count(WinList, 'draw', Num_normal_draws),
+  list_elem_count(WinList, 'exhaust', Num_exhaust_draws),
+  Num_draws is Num_normal_draws + Num_exhaust_draws,
   list_elem_count(WinList, 'b', Num_wins_b),
   list_elem_count(WinList, 'r', Num_wins_r),
   max(MovesList, Longest_game),

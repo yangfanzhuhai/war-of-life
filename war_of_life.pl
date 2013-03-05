@@ -325,7 +325,7 @@ show_score(quiet, _) :-
 show_score(verbose, [AliveBlues, AliveReds]) :-
  length(AliveBlues, BL),
  length(AliveReds, RL),
- format('~nblue score = ~w~nredscore = ~w~n~n', [BL,RL]).
+ format('~nblue score = ~w~nred score = ~w~n~n', [BL,RL]).
 
 %%%%% show_move/4
 
