@@ -138,37 +138,63 @@ separate_board('r',[Blue_pieces, Red_pieces], Red_pieces, Blue_pieces).
   
 compose_board('b', Blue_pieces, Red_pieces, [Blue_pieces, Red_pieces]).
 compose_board('r', Blue_pieces, Red_pieces, [Blue_pieces, Red_pieces]).
+
+get_score(bloodlust, 'b', [Blue, Red], length(Red)).
+get_score(bloodlust, 'r', [Blue, Red], length(Blue)).
+
+get_best_move([], _, _, _, _, Move, NewBoardState, Score).  
   
+/* When the Curr_Move is the best move so far. */
+get_best_move([Curr_Move | List_Moves], PlayerColour, My_Alive, Op_Alive, 
+              Strategy, Curr_Move, NewBoardState, HighestScore) :-
+  alter_board(Curr_Move, My_Alive, New_My_Alive),
+  compose_board(PlayerColour, NewMyAlives, Op_Alive, NewBoardState),
+  next_generation(NewBoardState, NewGenerationBoard),
+  get_score(Strategy, PlayerColour, NewGenerationBoard, HighestScore), 
+  get_best_move(List_Moves, PlayerColour, My_Alive, Op_Alive, Strategy, 
+                Move, NewState, Score),
+  HighestScore>=Score.
+
+/* When the Curr_Move is not the best move so far. */
+get_best_move([Curr_Move | List_Moves],PlayerColour, My_Alive, Op_Alive, 
+              Strategy, Move, NewBoardState, HighestScore) :-
+  alter_board(Curr_Move, My_Alive, New_My_Alive),
+  compose_board(PlayerColour, NewMyAlives, Op_Alive, NewBoardState),
+  next_generation(NewState, NewGenerationBoard),
+  get_score(Strategy, PlayerColour, NewGenerationBoard, Score), 
+  get_best_move(List_Moves, PlayerColour, My_Alive, Op_Alive, Strategy, 
+                Move, NewBoardState, HighestScore),
+  HighestScore>Score. 
   
-  
-  
+implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, Strategy) :-
+  separate_board(PlayerColour, CurrentBoardState, My_Alive, Op_Alive),  
+  possible_moves(My_Alive, Op_Alive, PosMoves),
+  get_best_move(PossMoves, PlayerColour, My_Alive, Op_Alive, Strategy, Move, NewBoardState, HighestScore).
   
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% BLOODLUST MOVE STRATEGY
 
-/*
-move_piece('b', random, [AliveBlues, AliveReds], [NewAliveBlues, AliveReds], Move) :-
- random_move(AliveBlues, AliveReds, Move),
- alter_board(Move, AliveBlues, NewAliveBlues).
-
-move_piece('r', random, [AliveBlues, AliveReds], [AliveBlues, NewAliveReds], Move) :-
- random_move(AliveReds, AliveBlues, Move),
- alter_board(Move, AliveReds, NewAliveReds).
- */
+bloodlust(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
+  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, bloodlust).
 
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% SELF PRESERVATION MOVE STRATEGY
 
+self_preservation(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
+  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, self_preservation).
 
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% LAND GRAB MOVE STRATEGY
 
+land_grab(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
+  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, land_grab).
+
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% MINIMAX MOVE STRATEGY
 
-
-              
+minimax(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
+  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, minimax).
