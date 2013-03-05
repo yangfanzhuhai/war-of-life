@@ -51,11 +51,24 @@ list_length([_|T], Len) :-
   list_length(T, Len2),
   Len is Len2+1.
 
+/* Delete Num of Elem from a List: */
+delete_some(List, _, 0, List).
+
+delete_some([Elem|Rest], Elem, Num, Result) :-
+  Num>0,
+  Num2 is (Num-1),
+  delete_some(Rest, Elem, Num2, Result).
+  
+delete_some([Head|Rest], Elem, Num, [Head|Result]) :-
+  \+ Head==Elem,
+  Num>0,
+  delete_some(Rest, Elem, Num, Result).
+
 /* Base Case: */
 test_strategy_scores(0, _, _, [], []).
 
 /* Recursion: */
-test_strategy_scores(N, St1, St2, [CurrMoves|Moves],[CurrWinner|Wins]) :-
+test_strategy_scores(N, St1, St2, [CurrMoves|Moves], [CurrWinner|Wins]) :-
   N>0,
   game_type(Type),
   play(Type, St1, St2, CurrMoves, CurrWinner),
@@ -76,10 +89,12 @@ test_strategy(N, St1, St2) :-
   Num_draws is Num_normal_draws + Num_exhaust_draws,
   list_elem_count(WinList, 'b', Num_wins_b),
   list_elem_count(WinList, 'r', Num_wins_r),
-  max(MovesList, Longest_game),
   min(MovesList, Shortest_game),
   sum_list(MovesList, SumMoves),
   list_length(MovesList, LenMovesList),
+  delete_some(MovesList, 250, Num_exhaust_draws, 
+              Non_exhaustive_MovesList),
+  max(Non_exhaustive_MovesList, Longest_game),
   Avg_move is SumMoves / LenMovesList,
   Avg_time is (EndingTime-StartingTime)*1000/N,
   write('Num_draws: '), write(Num_draws), write('\n'),
