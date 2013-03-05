@@ -113,3 +113,56 @@ test_strategy(N, St1, St2) :-
   write('Shortest_game: '), write(Shortest_game), write('\n'),
   write('Avg_move: '), write(Avg_move), write('\n'),
   write('Avg_time: '), write(Avg_time), write('\n').
+  
+  
+/*
+ * AI Strategies: 
+ */
+
+
+bloodlust(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
+  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, bloodlust).
+
+self_preservation(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
+  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, self_preservation).
+
+land_grab(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
+  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, land_grab).
+  
+minimax(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
+  implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, minimax).
+
+get_best_move([], _, _, _, _, Move, NewBoardState, Score).  
+  
+/* When the Curr_Move is the best move so far. */
+get_best_move([Curr_Move | List_Moves],PlayerColour, My_Alive, Op_Alive, Strategy, Curr_Move, NewBoardState, HighestScore) :-
+  alter_board(Curr_Move, My_Alive, New_My_Alive),
+  compose_board(PlayerColour, NewMyAlives, Op_Alive, NewBoardState),
+  next_generation(NewBoardState, NewGenerationBoard),
+  get_score(Strategy, NewGenerationBoard, HighestScore), /*TODO this */
+  get_best_move(List_Moves, PlayerColour, My_Alive, Op_Alive, Strategy, Move, NewState, Score),
+  HighestScore>=Score.
+
+/* When the Curr_Move is not the best move so far. */
+get_best_move([Curr_Move | List_Moves],PlayerColour, My_Alive, Op_Alive, Strategy, Move, NewBoardState, HighestScore) :-
+  alter_board(Curr_Move, My_Alive, New_My_Alive),
+  compose_board(PlayerColour, NewMyAlives, Op_Alive, NewBoardState),
+  next_generation(NewState, NewGenerationBoard),
+  get_score(Strategy, NewGenerationBoard, Score), /*TODO this */
+  get_best_move(List_Moves, PlayerColour, My_Alive, Op_Alive, Strategy, Move, NewBoardState, HighestScore),
+  HighestScore>Score. 
+  
+implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, Strategy) :-
+  separate_board(PlayerColour, CurrentBoardState, My_Alive, Op_Alive),  
+  possible_moves(My_Alive, Op_Alive, PosMoves),
+  get_best_move(PossMoves, PlayerColour, My_Alive, Op_Alive, Strategy, Move, NewBoardState, HighestScore).
+/*  alter_board(Move, My_Alive, NewMyAlives),
+  compose_board(PlaycerColour, NewMyAlives, Op_Alive, NewBoardState).*/
+  
+  
+  
+  
+  
+  
+  
+  
