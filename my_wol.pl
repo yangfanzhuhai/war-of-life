@@ -119,8 +119,10 @@ test_strategy(N, St1, St2) :-
   write('Num_wins_red: '), write(Num_wins_r), write('\n'),
   write('Longest_game: '), write(Longest_game), write('\n'),
   write('Shortest_game: '), write(Shortest_game), write('\n'),
+  Sec is (EndingTime - StartingTime) *1000 / N,
+  Ms is 1000/(sqrt(N)), 
   write('Avg_move: '), write(Avg_move), write('\n'),
-  write('Avg_time: '), write(Avg_time), write('\n').
+  write('Avg_time: '), write(Sec),write('s '), write(Ms), write('ms'),  write('\n').
   
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
