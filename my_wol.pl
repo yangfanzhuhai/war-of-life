@@ -137,63 +137,35 @@ compose_board('b', Blue_pieces, Red_pieces, [Blue_pieces, Red_pieces]).
 compose_board('r', Red_pieces, Blue_pieces, [Blue_pieces, Red_pieces]).
 
 /* Calucation the evaluation score for each move using a strategy. */
-get_score(bloodlust, _, _, Op_Alive, Score, _) :- 
+get_score(bloodlust, _, _, Op_Alive, Score) :- 
   length(Op_Alive, L), 
   Score is -L.
-get_score(self_preservation, _,My_Alive, _, Score, _) :- 
+get_score(self_preservation, _,My_Alive, _, Score) :- 
   length(My_Alive, Score).
-get_score(land_grab, _, My_Alive, Op_Alive, Score, _) :-
+get_score(land_grab, _, My_Alive, Op_Alive, Score) :-
   length(My_Alive, L1),
   length(Op_Alive, L2),
   Score is L1 - L2.
-get_score(minimax, PlayerColour, My_Alive, Op_Alive, Score, PruningScore) :-
-  get_opponent_score(land_grab, PlayerColour, My_Alive, Op_Alive, Score, PruningScore).
-  
+get_score(minimax, PlayerColour, My_Alive, Op_Alive, Score) :-
+  get_opponent_score(land_grab, PlayerColour, My_Alive, Op_Alive, Op_Score),
+  Score is -Op_Score.
 
 /* Getting the opponent's colour */
 opponent_colour('b', 'r').
 opponent_colour('r', 'b').
 
 /* Gets the opponent score using a given strategy (used for minimax). */
-get_opponent_score(Strategy, PlayerColour, My_Alive, Op_Alive, Score, PruningScore) :-
+get_opponent_score(Strategy, PlayerColour, My_Alive, Op_Alive, Score) :-
   possible_moves(Op_Alive, My_Alive, PossMoves),
   opponent_colour(PlayerColour, OpponentColour),
-  get_best_move_abp(PossMoves, OpponentColour, Op_Alive, My_Alive, Strategy, Score, PruningScore).
+  get_best_move(PossMoves, OpponentColour, Op_Alive, My_Alive, Strategy, _, _, Score).
 
-get_best_move_abp([], _, _, _, _, _, _, MaxScore, _) :-
-  maxscore(MaxScore).
-  
-get_best_move_abp([Curr_Move | List_Moves], PlayerColour, My_Alive, Op_Alive, 
-              Strategy, NewLowestScore, PruningScore) :-
-  alter_board(Curr_Move, My_Alive, New_My_Alive),
-  compose_board(PlayerColour, New_My_Alive, Op_Alive, NewBoardState),
-  next_generation(NewBoardState, NewGenerationBoard),
-  separate_board(PlayerColour, NewGenerationBoard, New_Gen_My_Alive, New_Gen_Op_Alive),
-  get_score(Strategy, PlayerColour, New_Gen_My_Alive, New_Gen_Op_Alive, NewOpScore, _),
-  NewScore is -NewOpScore,
-  (NewScore>=PruningScore
-  ->      
-    get_best_move_abp(List_Moves, PlayerColour, My_Alive, Op_Alive, Strategy, 
-                   OldLowestScore, PruningScore),
-    (NewScore>=OldLowestScore
-    -> 
-      NewLowestScore=OldLowestScore
-    ;
-      NewLowestScore=NewScore
-    )   
-  ;  
-    NewLowestScore=NewScore
-  ).
 /*
- * Find the best move in all the possible moves by comparing the score. 
- * -1000 is a value below the minimum possible score, so we can use it to 
- * calculate the maximum 
- *
- * 1000 is bigger than the highest possible score, so we can use it to 
- * calculate the minimum 
+ * Find the best move in all the possible moves by comparing the score. -1000 is a value 
+ * below the minimum possible score, so we can use it to calculate the maximum 
  */
+ 
 minscore(-1000).
-maxscore(1000).
 
 get_best_move([], _, _, _, _, _, _, MinScore) :-
   minscore(MinScore).
@@ -204,18 +176,15 @@ get_best_move([Curr_Move | List_Moves], PlayerColour, My_Alive, Op_Alive,
   compose_board(PlayerColour, New_My_Alive, Op_Alive, NewBoardState),
   next_generation(NewBoardState, NewGenerationBoard),
   separate_board(PlayerColour, NewGenerationBoard, New_Gen_My_Alive, New_Gen_Op_Alive),
+  get_score(Strategy, PlayerColour, New_Gen_My_Alive, New_Gen_Op_Alive, NewScore),
   get_best_move(List_Moves, PlayerColour, My_Alive, Op_Alive, Strategy, 
                 OldBestMove, OldBestBoardState, OldHighestScore),
-  get_score(Strategy, PlayerColour, New_Gen_My_Alive, New_Gen_Op_Alive, NewScore, OldHighestScore),
-  
   (NewScore>OldHighestScore
   ->
-    NewHighestScore=NewScore, 
-    NewBestBoardState=NewBoardState,
+    NewHighestScore=NewScore, NewBestBoardState=NewBoardState,
     NewBestMove=Curr_Move
   ;
-    NewHighestScore=OldHighestScore, 
-    NewBestBoardState=OldBestBoardState,
+    NewHighestScore=OldHighestScore, NewBestBoardState=OldBestBoardState,
     NewBestMove=OldBestMove
   ).
 
