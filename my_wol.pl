@@ -3,12 +3,10 @@
  */
 :- use_module(library(system)).
 
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%% SUPPORT FOR TEST_STRATEGY
+/* SUPPORT FOR TEST_STRATEGY */
 
 /* Just for flexibility purposes: */
-game_type(quiet).
+game_type(verbose).
 
 
 /* Min and max functions for lists: */
@@ -79,16 +77,14 @@ test_strategy_scores(N, St1, St2, [CurrMoves|Moves], [CurrWinner|Wins]) :-
   N2 is N-1,
   test_strategy_scores(N2, St1, St2, Moves, Wins).
 
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%% TEST_STRATEGY
+/* TEST_STRATEGY */
 
 test_strategy(N, St1, St2) :-
   write('Comparing: '),
   write(St1),
-  write('(Payer 1) with '),
+  write(' strategy (Player 1 - blue) with '),
   write(St2),
-  write(' (Player 2)\n'),
+  write(' strategy (Player 2 - red)\n'),
   now(StartingTime),
   test_strategy_scores(N, St1, St2, MovesList, WinList),
   now(EndingTime),
@@ -108,7 +104,7 @@ test_strategy(N, St1, St2) :-
               Non_exhaustive_MovesList),
   max(Non_exhaustive_MovesList, Longest_game),            
   Avg_move is SumMoves / LenMovesList,
-  Avg_time is (EndingTime-StartingTime)*1000/N,
+  Avg_time is (EndingTime-StartingTime)/N,
   write('List Length: '), write(LenMovesList), write('\n'),
   write('Total: '), write(Total), write('\n'),
   write('Num_draws: '), write(Num_draws), write('\n'),
@@ -119,14 +115,10 @@ test_strategy(N, St1, St2) :-
   write('Num_wins_red: '), write(Num_wins_r), write('\n'),
   write('Longest_game: '), write(Longest_game), write('\n'),
   write('Shortest_game: '), write(Shortest_game), write('\n'),
-  Sec is (EndingTime - StartingTime) *1000 / N,
-  Ms is 1000/(sqrt(N)), 
   write('Avg_move: '), write(Avg_move), write('\n'),
-  write('Avg_time: '), write(Sec),write('s '), write(Ms), write('ms'),  write('\n').
+  write('Avg_time: '), write(Avg_time),write('\n ').
   
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%% SUPPORT FOR OTHER STRATEGIES
+/* SUPPORT FOR OTHER STRATEGIES */
 
 /* Generate all the possible moves for a player. */
 possible_moves(Alive, OtherPlayerAlive, PossMoves) :-
@@ -145,15 +137,38 @@ compose_board('b', Blue_pieces, Red_pieces, [Blue_pieces, Red_pieces]).
 compose_board('r', Red_pieces, Blue_pieces, [Blue_pieces, Red_pieces]).
 
 /* Calucation the evaluation score for each move using a strategy. */
-get_score(bloodlust, _, Op_Alive, Score) :- length(Op_Alive, L), Score is -L.
-get_score(self_preservation, My_Alive, _, Score) :- length(My_Alive, Score).
-get_score(land_grab, My_Alive, Op_Alive, Score) :-
+get_score(bloodlust, _, _, Op_Alive, Score) :- 
+  length(Op_Alive, L), 
+  Score is -L.
+get_score(self_preservation, _,My_Alive, _, Score) :- 
+  length(My_Alive, Score).
+get_score(land_grab, _, My_Alive, Op_Alive, Score) :-
   length(My_Alive, L1),
   length(Op_Alive, L2),
   Score is L1 - L2.
+get_score(minimax, PlayerColour, My_Alive, Op_Alive, Score) :-
+  get_opponent_score(land_grab, PlayerColour, My_Alive, Op_Alive, Op_Score),
+  Score is -Op_Score.
 
-/* Find the best move in all the possible moves by comparing the score. */
-get_best_move([], _, _, _, _, _, _, -1000).
+/* Getting the opponent's colour */
+opponent_colour('b', 'r').
+opponent_colour('r', 'b').
+
+/* Gets the opponent score using a given strategy (used for minimax). */
+get_opponent_score(Strategy, PlayerColour, My_Alive, Op_Alive, Score) :-
+  possible_moves(Op_Alive, My_Alive, PossMoves),
+  opponent_colour(PlayerColour, OpponentColour),
+  get_best_move(PossMoves, OpponentColour, Op_Alive, My_Alive, Strategy, _, _, Score).
+
+/*
+ * Find the best move in all the possible moves by comparing the score. -1000 is a value 
+ * below the minimum possible score, so we can use it to calculate the maximum 
+ */
+ 
+minscore(-1000).
+
+get_best_move([], _, _, _, _, _, _, MinScore) :-
+  minscore(MinScore).
   
 get_best_move([Curr_Move | List_Moves], PlayerColour, My_Alive, Op_Alive, 
               Strategy, NewBestMove, NewBestBoardState, NewHighestScore) :-
@@ -161,7 +176,7 @@ get_best_move([Curr_Move | List_Moves], PlayerColour, My_Alive, Op_Alive,
   compose_board(PlayerColour, New_My_Alive, Op_Alive, NewBoardState),
   next_generation(NewBoardState, NewGenerationBoard),
   separate_board(PlayerColour, NewGenerationBoard, New_Gen_My_Alive, New_Gen_Op_Alive),
-  get_score(Strategy, New_Gen_My_Alive, New_Gen_Op_Alive, NewScore),
+  get_score(Strategy, PlayerColour, New_Gen_My_Alive, New_Gen_Op_Alive, NewScore),
   get_best_move(List_Moves, PlayerColour, My_Alive, Op_Alive, Strategy, 
                 OldBestMove, OldBestBoardState, OldHighestScore),
   (NewScore>OldHighestScore
@@ -191,3 +206,4 @@ land_grab(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
 
 minimax(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
   implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, minimax).
+
