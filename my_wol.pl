@@ -192,7 +192,12 @@ get_best_move([Curr_Move | List_Moves], PlayerColour, My_Alive, Op_Alive,
 implement_strategy(PlayerColour, CurrentBoardState, NewBoardState, Move, Strategy) :-
   separate_board(PlayerColour, CurrentBoardState, My_Alive, Op_Alive),  
   possible_moves(My_Alive, Op_Alive, PossMoves),
-  get_best_move(PossMoves, PlayerColour, My_Alive, Op_Alive, Strategy, Move, NewBoardState, _).
+  (PossMoves == []
+  ->
+  fail
+  ;
+  get_best_move(PossMoves, PlayerColour, My_Alive, Op_Alive, Strategy, Move, NewBoardState, _)
+  ).
 
 /* Entry point for different strategies. */
 bloodlust(PlayerColour, CurrentBoardState, NewBoardState, Move) :-
